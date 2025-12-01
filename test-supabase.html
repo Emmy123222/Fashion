@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Supabase Connection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div>
+        <input type="email" id="email" placeholder="Email" value="test@example.com">
+        <input type="password" id="password" placeholder="Password" value="Test123456!">
+        <button onclick="testLogin()">Test Login</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://djfrkmlhhgcjxtfdrbat.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqZnJrbWxoaGdjanh0ZmRyYmF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MTY0NTQsImV4cCI6MjA4MDA5MjQ1NH0.8MyCx8c0qhrZ4-_FsiELwOgBsSiGx0GSFsdcSWiOOPA'
+        );
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    resultDiv.innerHTML = `<pre style="color: red;">ERROR: ${JSON.stringify(error, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML = `<pre style="color: green;">SUCCESS! User: ${data.user.email}</pre>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<pre style="color: red;">EXCEPTION: ${err.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html>
