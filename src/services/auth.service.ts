@@ -70,21 +70,25 @@ class AuthService {
    */
   async signIn(data: SignInData): Promise<ApiResponse<Profile>> {
     try {
-      // Debug: Log what we're sending
-      console.log('SignIn data:', { email: data.email, passwordLength: data.password?.length });
+      // Debug: Log what we're receiving
+      console.log('SignIn RAW data:', data);
+      console.log('Email type:', typeof data.email, 'Value:', data.email);
+      console.log('Password type:', typeof data.password, 'Length:', data.password?.length);
       
-      // Ensure we're sending plain strings, not objects
-      const credentials = {
-        email: String(data.email).trim(),
-        password: String(data.password),
-      };
+      // Force convert to plain strings and validate
+      const email = data.email?.toString().trim() || '';
+      const password = data.password?.toString() || '';
       
-      console.log('Credentials type check:', {
-        emailType: typeof credentials.email,
-        passwordType: typeof credentials.password,
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+      
+      console.log('Sending to Supabase:', { email, passwordLength: password.length });
+      
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword(credentials);
 
       if (authError) {
         console.error('Auth error:', authError);
