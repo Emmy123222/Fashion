@@ -27,31 +27,62 @@ type Props = {
   navigation: RegisterScreenNavigationProp;
 };
 
+const AGE_GROUPS = ['Child', 'Teen', 'Adult'] as const;
+const COUNTRIES = [
+  'United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 
+  'France', 'Italy', 'Spain', 'Japan', 'South Korea', 'China', 'India',
+  'Brazil', 'Mexico', 'Argentina', 'South Africa', 'Nigeria', 'Egypt',
+  'Other'
+];
+
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [ageGroup, setAgeGroup] = useState<string>('');
+  const [country, setCountry] = useState<string>('');
+  const [showAgeGroupPicker, setShowAgeGroupPicker] = useState(false);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
 
   const handleSignUp = async () => {
-    if (!name || !email || !password || !confirmPassword) {
+    if (!username || !ageGroup || !country) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+    if (username.length < 3) {
+      Alert.alert('Error', 'Username must be at least 3 characters');
+      return;
+    }
+
+    if (username.length > 30) {
+      Alert.alert('Error', 'Username must be at most 30 characters');
+      return;
+    }
+
+    // Validate username format (alphanumeric, underscore, hyphen only)
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+      Alert.alert('Error', 'Username can only contain letters, numbers, underscores, and hyphens');
       return;
     }
 
     try {
       setIsLoading(true);
-      await signUp({ email, password, username: name, full_name: name, player_type: 'adult' });
+      // Create a temporary email and password for the user
+      const tempEmail = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@fashionmatch.temp`;
+      const tempPassword = Math.random().toString(36).slice(-12) + 'A1!';
+      
+      await signUp({ 
+        email: tempEmail, 
+        password: tempPassword, 
+        username, 
+        full_name: username,
+        player_type: ageGroup.toLowerCase() as 'child' | 'teen' | 'adult',
+        country
+      });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      Alert.alert('Error', errorMessage);
+      Alert.alert('Username Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -69,58 +100,82 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.form}>
-        {/* Name Input */}
+        {/* Username Input */}
         <View style={styles.inputContainer}>
           <MaterialIcons name="person" size={24} color={theme.colors.gray} style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="Full Name"
+            placeholder="Username"
             placeholderTextColor={theme.colors.gray}
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="words"
-          />
-        </View>
-
-        {/* Email Input */}
-        <View style={styles.inputContainer}>
-          <MaterialIcons name="email" size={24} color={theme.colors.gray} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={theme.colors.gray}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+            value={username}
+            onChangeText={setUsername}
             autoCapitalize="none"
           />
         </View>
 
-        {/* Password Input */}
-        <View style={styles.inputContainer}>
-          <MaterialIcons name="lock" size={24} color={theme.colors.gray} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={theme.colors.gray}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
+        {/* Age Group Picker */}
+        <TouchableOpacity 
+          style={styles.inputContainer}
+          onPress={() => setShowAgeGroupPicker(!showAgeGroupPicker)}
+        >
+          <MaterialIcons name="cake" size={24} color={theme.colors.gray} style={styles.icon} />
+          <Text style={[styles.pickerText, !ageGroup && styles.placeholderText]}>
+            {ageGroup || 'Select Age Group'}
+          </Text>
+          <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.gray} />
+        </TouchableOpacity>
 
-        {/* Confirm Password Input */}
-        <View style={styles.inputContainer}>
-          <MaterialIcons name="lock-outline" size={24} color={theme.colors.gray} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
-            placeholderTextColor={theme.colors.gray}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-          />
-        </View>
+        {showAgeGroupPicker && (
+          <View style={styles.pickerContainer}>
+            {AGE_GROUPS.map((group) => (
+              <TouchableOpacity
+                key={group}
+                style={styles.pickerItem}
+                onPress={() => {
+                  setAgeGroup(group);
+                  setShowAgeGroupPicker(false);
+                }}
+              >
+                <Text style={styles.pickerItemText}>{group}</Text>
+                {ageGroup === group && (
+                  <MaterialIcons name="check" size={20} color={theme.colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* Country Picker */}
+        <TouchableOpacity 
+          style={styles.inputContainer}
+          onPress={() => setShowCountryPicker(!showCountryPicker)}
+        >
+          <MaterialIcons name="public" size={24} color={theme.colors.gray} style={styles.icon} />
+          <Text style={[styles.pickerText, !country && styles.placeholderText]}>
+            {country || 'Select Country'}
+          </Text>
+          <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.gray} />
+        </TouchableOpacity>
+
+        {showCountryPicker && (
+          <ScrollView style={styles.pickerContainer} nestedScrollEnabled>
+            {COUNTRIES.map((countryOption) => (
+              <TouchableOpacity
+                key={countryOption}
+                style={styles.pickerItem}
+                onPress={() => {
+                  setCountry(countryOption);
+                  setShowCountryPicker(false);
+                }}
+              >
+                <Text style={styles.pickerItemText}>{countryOption}</Text>
+                {country === countryOption && (
+                  <MaterialIcons name="check" size={20} color={theme.colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
 
         {/* Sign Up Button */}
         <TouchableOpacity 
@@ -260,5 +315,42 @@ const styles = StyleSheet.create({
   termsLink: {
     color: theme.colors.primary,
     fontWeight: '600',
+  },
+  pickerText: {
+    flex: 1,
+    ...theme.text.body,
+    color: theme.colors.text,
+  },
+  placeholderText: {
+    color: theme.colors.gray,
+  },
+  pickerContainer: {
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing.md,
+    maxHeight: 200,
+    ...Platform.select({
+      ios: {
+        shadowColor: theme.colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  pickerItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray + '30',
+  },
+  pickerItemText: {
+    ...theme.text.body,
+    color: theme.colors.text,
   },
 });

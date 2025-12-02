@@ -9,6 +9,8 @@ import { SplashScreen } from '../screens/SplashScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { useAuth } from '../context/AuthContext';
 import { GameModeScreen } from '../screens/game/GameModeScreen';
+import { CategorySelectionScreen } from '../screens/game/CategorySelectionScreen';
+import { LevelSelectionScreen } from '../screens/game/LevelSelectionScreen';
 import { SinglePlayerGameScreen } from '../screens/game/SinglePlayerGameScreen';
 import { RoundResultScreen } from '../screens/game/RoundResultScreen';
 import { MultiplayerLobbyScreen } from '../screens/game/MultiplayerLobbyScreen';
@@ -62,6 +64,14 @@ export const AppNavigator = () => {
               options={{ gestureEnabled: false }}
             />
             <Stack.Screen name="GameMode" component={GameModeScreen} />
+            <Stack.Screen 
+              name="CategorySelection" 
+              component={CategorySelectionScreen} 
+            />
+            <Stack.Screen 
+              name="LevelSelection" 
+              component={LevelSelectionScreen} 
+            />
             <Stack.Screen 
               name="SinglePlayerGame" 
               component={SinglePlayerGameScreen} 

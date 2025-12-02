@@ -36,7 +36,7 @@ export const RoundResultScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleLeaderboard = () => {
-    navigation.navigate('Leaderboard', {});
+    navigation.navigate('Main', { screen: 'Leaderboard' });
   };
 
   return (

@@ -1,140 +1,149 @@
-// src/screens/HomeScreen.tsx
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, RefreshControl, StyleSheet, Platform } from 'react-native';
+// src/screens/HomeScreen.tsx - Beautiful Landing Page
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { theme } from '../theme';
+import { RootStackParamList } from '../navigation/types';
+import { useAuth } from '../context/AuthContext';
+import { featureGate } from '../services/featureGate.service';
 
-type OutfitItem = {
-  id: string;
-  username: string;
-  userAvatar: any; // or string if using URL
-  image: any; // or string if using URL
-  likes: number;
-  comments: number;
-  isLiked: boolean;
-  caption: string;
-  timeAgo: string;
-};
+const { width, height } = Dimensions.get('window');
+const isSmallDevice = width < 375;
+const isMediumDevice = width >= 375 && width < 414;
 
-const initialOutfits: OutfitItem[] = [
-  {
-    id: '1',
-    username: 'fashionista123',
-    userAvatar: require('../../assets/icon.png'),
-    image: require('../../assets/icon.png'),
-    likes: 245,
-    comments: 32,
-    isLiked: false,
-    caption: 'Loving this summer look! ☀️ #summer #fashion',
-    timeAgo: '2h ago',
-  },
-  // Add more outfits as needed
-];
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const HomeScreen = () => {
-  const [outfits, setOutfits] = useState<OutfitItem[]>(initialOutfits);
-  const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { user } = useAuth();
 
-  const handleLike = (id: string) => {
-    setOutfits(outfits.map(item => 
-      item.id === id 
-        ? { 
-            ...item, 
-            isLiked: !item.isLiked,
-            likes: item.isLiked ? item.likes - 1 : item.likes + 1
-          } 
-        : item
-    ));
+  const handlePlayPress = async () => {
+    if (!user) {
+      navigation.navigate('Auth', { screen: 'Login' });
+      return;
+    }
+
+    // Check daily game limit
+    const { canPlay, gamesLeft } = await featureGate.canPlayGame(user.id);
+    
+    if (!canPlay) {
+      featureGate.showGameLimitPrompt(gamesLeft, navigation);
+      return;
+    }
+
+    navigation.navigate('CategorySelection');
   };
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    // Simulate network request
-    setTimeout(() => {
-      setOutfits(initialOutfits);
-      setRefreshing(false);
-    }, 1000);
-  };
-
-  const renderOutfit = ({ item }: { item: OutfitItem }) => (
-    <View style={styles.outfitCard}>
-      <View style={styles.outfitHeader}>
-        <Image source={item.userAvatar} style={styles.avatar} />
-        <Text style={styles.username}>{item.username}</Text>
-        <Text style={styles.timeAgo}>{item.timeAgo}</Text>
-      </View>
-
-      <Image source={item.image} style={styles.outfitImage} />
-
-      <View style={styles.outfitActions}>
-        <TouchableOpacity 
-          style={styles.actionButton}
-          onPress={() => handleLike(item.id)}
-        >
-          <MaterialIcons 
-            name={item.isLiked ? 'favorite' : 'favorite-border'} 
-            size={24} 
-            color={item.isLiked ? theme.colors.danger : theme.colors.text} 
-          />
-          <Text style={styles.actionText}>{item.likes}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionButton}>
-          <MaterialIcons name="chat-bubble-outline" size={24} color={theme.colors.text} />
-          <Text style={styles.actionText}>{item.comments}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionButton}>
-          <MaterialIcons name="share" size={24} color={theme.colors.text} />
-          <Text style={styles.actionText}>Share</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.caption} numberOfLines={2}>
-        <Text style={styles.captionUser}>{item.username} </Text>
-        {item.caption}
-      </Text>
-
-      <TouchableOpacity>
-        <Text style={styles.viewComments}>
-          View all {item.comments} comments
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const features = [
+    {
+      icon: 'sports-esports',
+      title: 'Match & Play',
+      description: 'Test your fashion memory with exciting matching games',
+      color: theme.colors.primary,
+    },
+    {
+      icon: 'emoji-events',
+      title: 'Compete',
+      description: 'Challenge friends and climb the global leaderboards',
+      color: theme.colors.warning,
+    },
+    {
+      icon: 'collections',
+      title: 'Collect',
+      description: 'Unlock exclusive fashion items as you progress',
+      color: theme.colors.success,
+    },
+    {
+      icon: 'people',
+      title: 'Multiplayer',
+      description: 'Play with friends in real-time fashion battles',
+      color: theme.colors.danger,
+    },
+  ];
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Discover</Text>
-        <TouchableOpacity>
-          <MaterialIcons name="search" size={24} color={theme.colors.text} />
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Hero Section */}
+      <View style={styles.hero}>
+        <View style={styles.heroContent}>
+          <MaterialIcons name="style" size={isSmallDevice ? 60 : 80} color={theme.colors.white} />
+          <Text style={styles.heroTitle}>Fashion Match</Text>
+          <Text style={styles.heroSubtitle}>
+            The Ultimate Fashion Memory Game
+          </Text>
+          <Text style={styles.heroDescription}>
+            Match fashion items, compete with players worldwide, and build your exclusive collection
+          </Text>
+          
+          <TouchableOpacity
+            style={styles.playButton}
+            onPress={handlePlayPress}
+            activeOpacity={0.9}
+          >
+            <MaterialIcons name="play-arrow" size={32} color={theme.colors.primary} />
+            <Text style={styles.playButtonText}>START PLAYING</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Features Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Why You'll Love It</Text>
+        <View style={styles.featuresGrid}>
+          {features.map((feature, index) => (
+            <View key={index} style={styles.featureCard}>
+              <View style={[styles.featureIcon, { backgroundColor: feature.color + '20' }]}>
+                <MaterialIcons name={feature.icon as any} size={32} color={feature.color} />
+              </View>
+              <Text style={styles.featureTitle}>{feature.title}</Text>
+              <Text style={styles.featureDescription}>{feature.description}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Stats Section */}
+      <View style={[styles.section, styles.statsSection]}>
+        <Text style={styles.sectionTitle}>Join the Community</Text>
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>10K+</Text>
+            <Text style={styles.statLabel}>Players</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>500+</Text>
+            <Text style={styles.statLabel}>Fashion Items</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>50K+</Text>
+            <Text style={styles.statLabel}>Games Played</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* CTA Section */}
+      <View style={styles.ctaSection}>
+        <Text style={styles.ctaTitle}>Ready to Play?</Text>
+        <Text style={styles.ctaDescription}>
+          Join thousands of fashion enthusiasts in the most addictive matching game
+        </Text>
+        <TouchableOpacity
+          style={styles.ctaButton}
+          onPress={handlePlayPress}
+          activeOpacity={0.9}
+        >
+          <Text style={styles.ctaButtonText}>GET STARTED</Text>
+          <MaterialIcons name="arrow-forward" size={24} color={theme.colors.white} />
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={outfits}
-        renderItem={renderOutfit}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[theme.colors.primary]}
-            tintColor={theme.colors.primary}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <MaterialIcons name="style" size={48} color={theme.colors.gray} />
-            <Text style={styles.emptyStateText}>No outfits to show</Text>
-            <Text style={styles.emptyStateSubtext}>Follow users or upload your own outfits to see them here</Text>
-          </View>
-        }
-      />
-    </View>
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Made with ❤️ for Fashion Lovers</Text>
+      </View>
+    </ScrollView>
   );
 };
 
@@ -143,105 +152,195 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  hero: {
+    backgroundColor: theme.colors.primary,
+    paddingTop: isSmallDevice ? theme.spacing.xl : theme.spacing.xxl * 1.5,
+    paddingBottom: isSmallDevice ? theme.spacing.xl : theme.spacing.xxl * 1.5,
+    paddingHorizontal: theme.spacing.md,
+  },
+  heroContent: {
     alignItems: 'center',
-    padding: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray + '20',
   },
-  title: {
-    ...theme.text.h1,
-    color: theme.colors.primary,
+  heroTitle: {
+    fontSize: isSmallDevice ? 32 : isMediumDevice ? 40 : 48,
+    fontWeight: '800',
+    color: theme.colors.white,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    textAlign: 'center',
   },
-  listContent: {
-    paddingBottom: theme.spacing.xl,
+  heroSubtitle: {
+    fontSize: isSmallDevice ? 16 : isMediumDevice ? 18 : 20,
+    fontWeight: '600',
+    color: theme.colors.white,
+    marginBottom: theme.spacing.sm,
+    textAlign: 'center',
+    paddingHorizontal: theme.spacing.sm,
   },
-  outfitCard: {
+  heroDescription: {
+    fontSize: isSmallDevice ? 14 : 16,
+    color: theme.colors.white,
+    textAlign: 'center',
+    opacity: 0.9,
     marginBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.md,
+    lineHeight: isSmallDevice ? 20 : 24,
+  },
+  playButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: theme.colors.white,
-    paddingBottom: theme.spacing.md,
+    paddingVertical: isSmallDevice ? theme.spacing.sm : theme.spacing.md,
+    paddingHorizontal: isSmallDevice ? theme.spacing.xl : theme.spacing.xl * 2,
+    borderRadius: 30,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  playButtonText: {
+    fontSize: isSmallDevice ? 16 : 18,
+    fontWeight: '700',
+    color: theme.colors.primary,
+    marginLeft: theme.spacing.sm,
+  },
+  section: {
+    padding: isSmallDevice ? theme.spacing.md : theme.spacing.xl,
+  },
+  sectionTitle: {
+    fontSize: isSmallDevice ? 22 : isMediumDevice ? 24 : 28,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.lg,
+    textAlign: 'center',
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  featureCard: {
+    width: isSmallDevice ? '100%' : '48%',
+    backgroundColor: theme.colors.white,
+    padding: isSmallDevice ? theme.spacing.md : theme.spacing.lg,
+    borderRadius: theme.radius.lg,
+    marginBottom: theme.spacing.md,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 2,
+        elevation: 3,
       },
     }),
   },
-  outfitHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: theme.spacing.md,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: theme.spacing.sm,
-  },
-  username: {
-    ...theme.text.body,
-    fontWeight: '600',
-    flex: 1,
-  },
-  timeAgo: {
-    ...theme.text.caption,
-    color: theme.colors.gray,
-  },
-  outfitImage: {
-    width: '100%',
-    height: 375, // Adjust as needed
-  },
-  outfitActions: {
-    flexDirection: 'row',
-    padding: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray + '20',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: theme.spacing.xl,
-  },
-  actionText: {
-    ...theme.text.body,
-    marginLeft: theme.spacing.xs,
-  },
-  caption: {
-    ...theme.text.body,
-    paddingHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.sm,
-  },
-  captionUser: {
-    fontWeight: '600',
-  },
-  viewComments: {
-    ...theme.text.caption,
-    color: theme.colors.gray,
-    paddingHorizontal: theme.spacing.md,
-    marginTop: 4,
-  },
-  emptyState: {
-    flex: 1,
+  featureIcon: {
+    width: isSmallDevice ? 56 : 64,
+    height: isSmallDevice ? 56 : 64,
+    borderRadius: isSmallDevice ? 28 : 32,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: theme.spacing.xl,
+    marginBottom: theme.spacing.sm,
   },
-  emptyStateText: {
-    ...theme.text.h3,
+  featureTitle: {
+    fontSize: isSmallDevice ? 16 : 18,
+    fontWeight: '700',
     color: theme.colors.text,
-    marginTop: theme.spacing.md,
     marginBottom: theme.spacing.xs,
   },
-  emptyStateSubtext: {
-    ...theme.text.body,
+  featureDescription: {
+    fontSize: isSmallDevice ? 13 : 14,
+    color: theme.colors.gray,
+    lineHeight: isSmallDevice ? 18 : 20,
+  },
+  statsSection: {
+    backgroundColor: theme.colors.primary + '10',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap',
+  },
+  statCard: {
+    alignItems: 'center',
+    minWidth: isSmallDevice ? '30%' : 'auto',
+  },
+  statNumber: {
+    fontSize: isSmallDevice ? 28 : isMediumDevice ? 32 : 36,
+    fontWeight: '800',
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.xs,
+  },
+  statLabel: {
+    fontSize: isSmallDevice ? 12 : 14,
+    color: theme.colors.gray,
+    fontWeight: '600',
+  },
+  ctaSection: {
+    padding: isSmallDevice ? theme.spacing.md : theme.spacing.xl,
+    alignItems: 'center',
+    backgroundColor: theme.colors.white,
+    marginHorizontal: isSmallDevice ? theme.spacing.md : theme.spacing.lg,
+    marginVertical: theme.spacing.lg,
+    borderRadius: theme.radius.lg,
+    ...Platform.select({
+      ios: {
+        shadowColor: theme.colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  ctaTitle: {
+    fontSize: isSmallDevice ? 24 : isMediumDevice ? 28 : 32,
+    fontWeight: '800',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+    textAlign: 'center',
+  },
+  ctaDescription: {
+    fontSize: isSmallDevice ? 14 : 16,
     color: theme.colors.gray,
     textAlign: 'center',
+    marginBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.sm,
+    lineHeight: isSmallDevice ? 20 : 24,
+  },
+  ctaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    paddingVertical: isSmallDevice ? theme.spacing.sm : theme.spacing.md,
+    paddingHorizontal: isSmallDevice ? theme.spacing.xl : theme.spacing.xl * 2,
+    borderRadius: 30,
+  },
+  ctaButtonText: {
+    fontSize: isSmallDevice ? 16 : 18,
+    fontWeight: '700',
+    color: theme.colors.white,
+    marginRight: theme.spacing.sm,
+  },
+  footer: {
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    paddingBottom: theme.spacing.xl,
+  },
+  footerText: {
+    fontSize: isSmallDevice ? 12 : 14,
+    color: theme.colors.gray,
   },
 });

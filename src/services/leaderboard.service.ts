@@ -13,7 +13,7 @@ class LeaderboardService {
         .from('leaderboards')
         .select(`
           *,
-          profiles:user_id (username, full_name, avatar_url),
+          profiles:user_id (username, full_name, avatar_url, country),
           teams:team_id (name, avatar_url)
         `)
         .eq('scope', filter.scope);
@@ -42,7 +42,39 @@ class LeaderboardService {
 
       if (error) throw error;
 
-      return { success: true, data: data || [] };
+      // Map the nested profile data to flat structure
+      const mappedData = (data || []).map((entry: any) => ({
+        ...entry,
+        username: entry.profiles?.username || entry.username,
+        full_name: entry.profiles?.full_name || entry.full_name,
+        avatar_url: entry.profiles?.avatar_url || entry.avatar_url,
+        country: entry.profiles?.country || entry.country,
+        team_name: entry.teams?.name || entry.team_name,
+        team_avatar_url: entry.teams?.avatar_url || entry.team_avatar_url,
+      }));
+
+      // Remove duplicates by user_id, keeping the highest score
+      const uniqueUsers = new Map();
+      mappedData.forEach((entry: any) => {
+        const existing = uniqueUsers.get(entry.user_id);
+        if (!existing || entry.score > existing.score) {
+          uniqueUsers.set(entry.user_id, entry);
+        }
+      });
+
+      // Convert back to array and re-rank
+      const uniqueData = Array.from(uniqueUsers.values())
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          if (b.wins !== a.wins) return b.wins - a.wins;
+          return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+        })
+        .map((entry, index) => ({
+          ...entry,
+          rank: index + 1,
+        }));
+
+      return { success: true, data: uniqueData };
     } catch (error: any) {
       return {
         success: false,
@@ -144,11 +176,24 @@ class LeaderboardService {
   }
 
   /**
-   * Get school leaderboard
+   * Get county leaderboard
    */
-  async getSchoolLeaderboard(schoolName: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
+  async getCountyLeaderboard(county: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
     return this.getLeaderboard({
-      scope: 'school',
+      scope: 'county',
+      scope_value: county,
+      leaderboard_type: 'user',
+      period: 'all_time',
+      limit,
+    });
+  }
+
+  /**
+   * Get high school leaderboard
+   */
+  async getHighSchoolLeaderboard(schoolName: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
+    return this.getLeaderboard({
+      scope: 'high_school',
       scope_value: schoolName,
       leaderboard_type: 'user',
       period: 'all_time',
@@ -157,12 +202,77 @@ class LeaderboardService {
   }
 
   /**
-   * Get organization leaderboard
+   * Get college leaderboard
    */
-  async getOrganizationLeaderboard(orgName: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
+  async getCollegeLeaderboard(collegeName: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
     return this.getLeaderboard({
-      scope: 'organization',
-      scope_value: orgName,
+      scope: 'college',
+      scope_value: collegeName,
+      leaderboard_type: 'user',
+      period: 'all_time',
+      limit,
+    });
+  }
+
+  /**
+   * Get university leaderboard
+   */
+  async getUniversityLeaderboard(universityName: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
+    return this.getLeaderboard({
+      scope: 'university',
+      scope_value: universityName,
+      leaderboard_type: 'user',
+      period: 'all_time',
+      limit,
+    });
+  }
+
+  /**
+   * Get nonprofit organization leaderboard
+   */
+  async getNonprofitLeaderboard(nonprofitName: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
+    return this.getLeaderboard({
+      scope: 'nonprofit',
+      scope_value: nonprofitName,
+      leaderboard_type: 'user',
+      period: 'all_time',
+      limit,
+    });
+  }
+
+  /**
+   * Get corporation leaderboard
+   */
+  async getCorporationLeaderboard(corporationName: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
+    return this.getLeaderboard({
+      scope: 'corporation',
+      scope_value: corporationName,
+      leaderboard_type: 'user',
+      period: 'all_time',
+      limit,
+    });
+  }
+
+  /**
+   * Get government department leaderboard
+   */
+  async getGovernmentLeaderboard(departmentName: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
+    return this.getLeaderboard({
+      scope: 'government',
+      scope_value: departmentName,
+      leaderboard_type: 'user',
+      period: 'all_time',
+      limit,
+    });
+  }
+
+  /**
+   * Get organization chapter leaderboard
+   */
+  async getOrganizationChapterLeaderboard(chapterName: string, limit: number = 100): Promise<ApiResponse<LeaderboardEntry[]>> {
+    return this.getLeaderboard({
+      scope: 'organization_chapter',
+      scope_value: chapterName,
       leaderboard_type: 'user',
       period: 'all_time',
       limit,
@@ -194,7 +304,7 @@ class LeaderboardService {
         .from('leaderboards')
         .select(`
           *,
-          profiles:user_id (username, full_name, avatar_url)
+          profiles:user_id (username, full_name, avatar_url, country)
         `)
         .eq('user_id', userId)
         .eq('scope', scope)
@@ -303,7 +413,7 @@ class LeaderboardService {
         .from('leaderboards')
         .select(`
           *,
-          profiles:user_id (username, full_name, avatar_url)
+          profiles:user_id (username, full_name, avatar_url, country)
         `)
         .eq('scope', scope)
         .eq('leaderboard_type', 'user')

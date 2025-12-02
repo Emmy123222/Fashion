@@ -341,6 +341,62 @@ class SubscriptionService {
       };
     }
   }
+
+  /**
+   * Create Stripe checkout session (Website only)
+   */
+  async createStripeCheckoutSession(
+    successUrl?: string,
+    cancelUrl?: string
+  ): Promise<ApiResponse<{ sessionId: string; url: string }>> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.error) throw response.error;
+
+      return { success: true, data: response.data };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: {
+          message: error.message || 'Failed to create checkout session',
+          code: error.code,
+        },
+      };
+    }
+  }
+
+  /**
+   * Check if subscription is active using database function
+   */
+  async isSubscriptionActive(userId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase.rpc('is_subscription_active', {
+        p_user_id: userId,
+      });
+
+      if (error) throw error;
+
+      return data === true;
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      return false;
+    }
+  }
 }
 
 export const subscriptionService = new SubscriptionService();

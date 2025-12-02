@@ -1,11 +1,11 @@
-// src/screens/auth/LoginScreen.tsx
+// src/screens/LoginScreen.tsx
 import React, { useState } from 'react';
-import { StyleSheet,  View, TextInput, TouchableOpacity, Text, Alert, ScrollView, Platform } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity, Text, Alert, ScrollView, Platform } from 'react-native';
 import { theme } from '../theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../../navigation/types';
-import { useAuth } from '../../context/AuthContext';
+import { AuthStackParamList } from '../navigation/types';
+import { useAuth } from '../context/AuthContext';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,

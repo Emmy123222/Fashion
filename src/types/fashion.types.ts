@@ -1,16 +1,16 @@
 // src/types/fashion.types.ts
 
 export type FashionCategory = 
+  | 'all'
   | 'shoes' 
   | 'dresses' 
+  | 'suits'
+  | 'accessories'
   | 'hats' 
-  | 'suits' 
-  | 'accessories' 
-  | 'shirts' 
-  | 'blouses' 
-  | 'underwear' 
-  | 'belts' 
-  | 'ties';
+  | 'pants'
+  | 'underwear'
+  | 'shirts'
+  | 'blouses';
 
 export type FashionSource = 'ai_generated' | 'user_upload';
 export type UploadStatus = 'pending' | 'approved' | 'rejected' | 'flagged';

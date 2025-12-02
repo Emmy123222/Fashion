@@ -7,3 +7,8 @@ export { leaderboardService } from './leaderboard.service';
 export { teamService } from './team.service';
 export { multiplayerService } from './multiplayer.service';
 export { subscriptionService } from './subscription.service';
+
+// AI Services
+export { groqDifficultyService } from './ai/groqDifficultyService';
+export { groqImageService } from './ai/groqImageService';
+export { difficultyAdapter } from './ai/difficultyAdapter';

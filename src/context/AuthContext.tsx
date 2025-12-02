@@ -16,6 +16,7 @@ type AuthContextType = {
     full_name?: string;
     player_type: PlayerType;
     date_of_birth?: string;
+    country?: string;
   }) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -74,7 +75,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const response = await authService.signIn({ email, password });
+      console.log('AuthContext signIn called with:', { email, password: password ? '***' : undefined });
+      const response = await authService.signIn({ 
+        email: String(email), 
+        password: String(password) 
+      });
       
       if (!response.success) {
         throw new Error(response.error?.message || 'Sign in failed');
@@ -96,6 +101,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     full_name?: string;
     player_type: PlayerType;
     date_of_birth?: string;
+    country?: string;
   }) => {
     try {
       setIsLoading(true);

@@ -1,16 +1,40 @@
 // src/theme/index.ts
 export const theme = {
   colors: {
-    primary: '#6a5acd',
-    secondary: '#9c88ff',
-    background: '#f8f9fa',
-    text: '#2d3436',
-    gray: '#95a5a6',
-    success: '#2ecc71',
-    danger: '#e74c3c',
-    warning: '#f39c12',
-    white: '#ffffff',
+    primary: '#6C63FF',        // Royal Purple
+    secondary: '#FF4F81',      // Hot Pink
+    accent: '#FFC736',         // Gold Yellow
+    background: '#F8FAFC',     // Soft White
+    backgroundDark: '#0F172A', // Deep Navy
+    text: '#0F172A',
+    textLight: '#F8FAFC',
+    gray: '#64748B',
+    success: '#22C55E',        // Neon Green
+    danger: '#EF4444',         // Red
+    warning: '#FFC736',
+    white: '#FFFFFF',
     black: '#000000',
+  },
+  // Mode-specific colors
+  modes: {
+    child: {
+      primary: '#FF6B9D',      // Bright Pink
+      secondary: '#FFD93D',    // Bright Yellow
+      accent: '#6BCF7F',       // Bright Green
+      background: '#FFF5F7',
+    },
+    teen: {
+      primary: '#FF4F81',      // Hot Pink
+      secondary: '#6C63FF',    // Royal Purple
+      accent: '#00F5FF',       // Neon Cyan
+      background: '#1A1A2E',
+    },
+    adult: {
+      primary: '#6C63FF',      // Royal Purple
+      secondary: '#FF4F81',    // Hot Pink
+      accent: '#FFC736',       // Gold Yellow
+      background: '#0F172A',   // Deep Navy
+    },
   },
   spacing: {
     xs: 4,

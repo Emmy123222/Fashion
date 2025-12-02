@@ -19,9 +19,10 @@ export const LoginScreen = ({ navigation }) => {
 
     try {
       setIsLoading(true);
-      await signIn({ email, password });
+      await signIn(email.trim(), password);
     } catch (error) {
-      Alert.alert('Error', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -4,16 +4,17 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MainTabParamList } from './types';
 import { HomeScreen } from '../screens/HomeScreen';
 import { LeaderboardScreen } from '../screens/LeaderboardScreen';
-import { UploadScreen } from '../screens/UploadScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { AdminScreen } from '../screens/admin/AdminScreen';
 import { MaterialIcons } from '@expo/vector-icons';
+import { theme } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainTabNavigator = () => {
-  // In a real app, you would get this from your auth context
-  const isAdmin = true; // Replace with actual admin check
+  const { user } = useAuth();
+  const isAdmin = user?.is_admin || false;
 
   return (
     <Tab.Navigator
@@ -22,9 +23,9 @@ export const MainTabNavigator = () => {
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.gray,
         tabBarStyle: {
-          paddingBottom: 8,
+          paddingBottom: 20,
           paddingTop: 8,
-          height: 60,
+          height: 70,
           backgroundColor: theme.colors.white,
           borderTopWidth: 1,
           borderTopColor: theme.colors.gray + '20',
@@ -54,37 +55,6 @@ export const MainTabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Upload"
-        component={UploadScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <View style={{
-              backgroundColor: theme.colors.primary,
-              width: 60,
-              height: 60,
-              borderRadius: 30,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: Platform.OS === 'ios' ? 20 : 0,
-              ...Platform.select({
-                ios: {
-                  shadowColor: theme.colors.primary,
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 6,
-                },
-              }),
-            }}>
-              <MaterialIcons name="add" size={32} color={theme.colors.white} />
-            </View>
-          ),
-          tabBarLabel: '',
-        }}
-      />
-      <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
@@ -107,3 +77,6 @@ export const MainTabNavigator = () => {
     </Tab.Navigator>
   );
 };
+
+// TODO: Add Discover tab later - will show fashion feed from community
+// TODO: Add Upload tab later - will allow users to upload their own fashion items

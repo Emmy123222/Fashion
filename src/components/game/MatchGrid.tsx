@@ -48,9 +48,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: theme.spacing.sm,
   },
   grid: {
-    padding: theme.spacing.sm,
+    padding: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
   },
   row: {
     justifyContent: 'center',

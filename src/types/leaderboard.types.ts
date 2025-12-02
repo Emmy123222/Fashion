@@ -7,8 +7,13 @@ export type LeaderboardScope =
   | 'state' 
   | 'county' 
   | 'city' 
-  | 'school' 
-  | 'organization';
+  | 'high_school'
+  | 'college'
+  | 'university'
+  | 'nonprofit'
+  | 'corporation'
+  | 'government'
+  | 'organization_chapter';
 export type LeaderboardPeriod = 'all_time' | 'monthly' | 'weekly' | 'daily';
 
 export interface LeaderboardEntry {
@@ -31,6 +36,7 @@ export interface LeaderboardEntry {
   username?: string;
   full_name?: string;
   avatar_url?: string;
+  country?: string;
   team_name?: string;
   team_avatar_url?: string;
 }
@@ -56,7 +62,13 @@ export interface UserRank {
   global_rank?: number;
   country_rank?: number;
   state_rank?: number;
+  county_rank?: number;
   city_rank?: number;
-  school_rank?: number;
-  organization_rank?: number;
+  high_school_rank?: number;
+  college_rank?: number;
+  university_rank?: number;
+  nonprofit_rank?: number;
+  corporation_rank?: number;
+  government_rank?: number;
+  organization_chapter_rank?: number;
 }

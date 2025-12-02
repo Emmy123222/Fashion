@@ -8,6 +8,7 @@ export { Modal } from './common/Modal';
 export { Input } from './common/Input';
 export { Toast } from './common/Toast';
 export { EmptyState } from './common/EmptyState';
+export { ErrorBoundary } from './common/ErrorBoundary';
 
 // Game Components
 export { Timer } from './game/Timer';

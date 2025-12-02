@@ -3,12 +3,13 @@
 export type PlayerType = 'child' | 'teen' | 'adult';
 export type SubscriptionStatus = 'free' | 'premium';
 export type SchoolType = 'high_school' | 'college' | 'university';
-export type OrganizationType = 'nonprofit' | 'corporation' | 'government';
+export type OrganizationType = 'nonprofit' | 'corporation' | 'government' | 'high_school' | 'college' | 'university';
 
 export interface Profile {
   id: string;
   username: string;
   full_name?: string;
+  email?: string;
   avatar_url?: string;
   player_type: PlayerType;
   date_of_birth?: string;
@@ -18,8 +19,15 @@ export interface Profile {
   city?: string;
   school_name?: string;
   school_type?: SchoolType;
+  high_school_name?: string;
+  college_name?: string;
+  company_name?: string;
+  nonprofit_name?: string;
+  corporation_name?: string;
+  government_department?: string;
   organization_name?: string;
   organization_type?: OrganizationType;
+  organization_chapter?: string;
   is_admin: boolean;
   is_banned: boolean;
   subscription_status: SubscriptionStatus;
@@ -36,6 +44,7 @@ export interface Profile {
 export interface ProfileUpdate {
   username?: string;
   full_name?: string;
+  email?: string;
   avatar_url?: string;
   player_type?: PlayerType;
   date_of_birth?: string;
@@ -45,8 +54,15 @@ export interface ProfileUpdate {
   city?: string;
   school_name?: string;
   school_type?: SchoolType;
+  high_school_name?: string;
+  college_name?: string;
+  company_name?: string;
+  nonprofit_name?: string;
+  corporation_name?: string;
+  government_department?: string;
   organization_name?: string;
   organization_type?: OrganizationType;
+  organization_chapter?: string;
 }
 
 export interface UserStats {

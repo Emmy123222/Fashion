@@ -11,6 +11,8 @@ import { Match } from '../../types/game.types';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Loader } from '../../components/common/Loader';
+import { featureGate } from '../../services/featureGate.service';
+import { FeatureLock } from '../../components/common/FeatureLock';
 
 type MultiplayerLobbyScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -23,15 +25,32 @@ interface Props {
 
 export const MultiplayerLobbyScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useAuth();
+  const [isPremium, setIsPremium] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
-    loadMatches();
-    const interval = setInterval(loadMatches, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
-  }, []);
+    checkPremiumAndLoad();
+  }, [user]);
+
+  const checkPremiumAndLoad = async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    const premium = await featureGate.isPremium(user.id);
+    setIsPremium(premium);
+
+    if (premium) {
+      loadMatches();
+      const interval = setInterval(loadMatches, 5000);
+      return () => clearInterval(interval);
+    } else {
+      setIsLoading(false);
+    }
+  };
 
   const loadMatches = async () => {
     try {
@@ -118,7 +137,18 @@ export const MultiplayerLobbyScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   if (isLoading) {
-    return <Loader fullScreen text="Finding matches..." />;
+    return <Loader fullScreen text="Checking access..." />;
+  }
+
+  if (!isPremium) {
+    return (
+      <FeatureLock
+        featureName="Multiplayer Mode"
+        featureIcon="⚔️"
+        description="Challenge other players in real-time matches"
+        onUpgrade={() => navigation.navigate('SubscriptionWeb' as never)}
+      />
+    );
   }
 
   return (

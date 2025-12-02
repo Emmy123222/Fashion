@@ -93,7 +93,7 @@ export const FashionCard: React.FC<FashionCardProps> = ({
         ]}
       >
         <View style={styles.cardBackContent}>
-          <MaterialIcons name="style" size={cardSize * 0.4} color={theme.colors.primary} />
+          <MaterialIcons name="style" size={Math.min(cardSize * 0.5, 48)} color={theme.colors.white} />
         </View>
       </Animated.View>
 
@@ -113,7 +113,7 @@ export const FashionCard: React.FC<FashionCardProps> = ({
         <Image
           source={{ uri: card.thumbnailUrl || card.imageUrl }}
           style={styles.cardImage}
-          resizeMode="cover"
+          resizeMode="contain"
         />
       </Animated.View>
 
@@ -128,7 +128,7 @@ export const FashionCard: React.FC<FashionCardProps> = ({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    margin: 4,
+    margin: 6,
     position: 'relative',
   },
   card: {
@@ -160,10 +160,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: theme.radius.md,
   },
   cardImage: {
     width: '100%',
     height: '100%',
+    backgroundColor: 'transparent',
   },
   matchedOverlay: {
     position: 'absolute',

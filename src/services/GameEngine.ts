@@ -229,6 +229,8 @@ export class GameEngine {
   }
 
   private endGame(isWon: boolean): void {
+    console.log('🏁 GameEngine.endGame called:', { isWon, matchedPairs: this.matchedPairs, totalPairs: this.cards.length / 2 });
+    
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
@@ -238,6 +240,7 @@ export class GameEngine {
     this.canFlip = false;
 
     const state = this.getGameState();
+    console.log('🏁 Calling onStateChange with isGameOver:', state.isGameOver);
     this.onStateChange?.(state);
   }
 

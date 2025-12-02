@@ -1,14 +1,34 @@
 // src/navigation/types.ts
 import { NavigatorScreenParams } from '@react-navigation/native';
 
+// Game Stack Param List
+export type GameStackParamList = {
+  CategorySelection: undefined;
+  LevelSelection: { category: string };
+  SinglePlayerGame: { 
+    category: string;
+    level: number;
+    layout: 'store' | 'pile';
+    gameId?: string;
+  };
+};
+
 // Root Stack Param List
 export type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Main: NavigatorScreenParams<MainTabParamList>;
+  Game: NavigatorScreenParams<GameStackParamList>;
   GameMode: undefined;
-  SinglePlayerGame: { gameId?: string };
+  CategorySelection: undefined;
+  LevelSelection: { category: string };
+  SinglePlayerGame: { 
+    category?: string;
+    level?: number;
+    layout?: 'store' | 'pile';
+    gameId?: string;
+  };
   MultiplayerLobby: undefined;
   MultiplayerGame: { matchId: string };
   TeamMode: undefined;
@@ -37,8 +57,8 @@ export type RootStackParamList = {
 // Main Tabs
 export type MainTabParamList = {
   Home: undefined;
-  Leaderboard: undefined;
-  Upload: undefined;
+  Leaderboard: { initialTab?: LeaderboardTabType };
+  Collection: undefined;
   Profile: undefined;
   Admin: undefined;
 };

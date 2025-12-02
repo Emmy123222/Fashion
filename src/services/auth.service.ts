@@ -10,6 +10,7 @@ export interface SignUpData {
   full_name?: string;
   player_type: PlayerType;
   date_of_birth?: string;
+  country?: string;
 }
 
 export interface SignInData {
@@ -24,10 +25,66 @@ export interface UpdatePasswordData {
 
 class AuthService {
   /**
+   * Check if username is available
+   */
+  async checkUsernameAvailable(username: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .ilike('username', username)
+        .limit(1);
+
+      if (error) throw error;
+      
+      return !data || data.length === 0;
+    } catch (error) {
+      console.error('Error checking username:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Suggest alternative username if taken
+   */
+  async suggestUsername(baseUsername: string): Promise<string> {
+    let counter = 1;
+    let suggestedUsername = baseUsername;
+    
+    while (!(await this.checkUsernameAvailable(suggestedUsername))) {
+      suggestedUsername = `${baseUsername}${counter}`;
+      counter++;
+      
+      // Prevent infinite loop
+      if (counter > 9999) {
+        suggestedUsername = `${baseUsername}_${Date.now()}`;
+        break;
+      }
+    }
+    
+    return suggestedUsername;
+  }
+
+  /**
    * Sign up a new user
    */
   async signUp(data: SignUpData): Promise<ApiResponse<Profile>> {
     try {
+      // Check if username is available
+      const isAvailable = await this.checkUsernameAvailable(data.username);
+      
+      if (!isAvailable) {
+        // Suggest alternative username
+        const suggested = await this.suggestUsername(data.username);
+        return {
+          success: false,
+          error: {
+            message: `Username "${data.username}" is already taken. Try "${suggested}" instead.`,
+            code: 'USERNAME_TAKEN',
+          },
+        };
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -37,6 +94,7 @@ class AuthService {
             full_name: data.full_name,
             player_type: data.player_type,
             date_of_birth: data.date_of_birth,
+            country: data.country,
           },
         },
       });
@@ -70,16 +128,27 @@ class AuthService {
    */
   async signIn(data: SignInData): Promise<ApiResponse<Profile>> {
     try {
-      // Debug: Log what we're receiving
-      console.log('SignIn RAW data:', data);
-      console.log('Email type:', typeof data.email, 'Value:', data.email);
-      console.log('Password type:', typeof data.password, 'Length:', data.password?.length);
+      // Extract email and password from data object
+      // Handle case where data might be nested incorrectly
+      let email: string;
+      let password: string;
       
-      // Force convert to plain strings and validate
-      const email = data.email?.toString().trim() || '';
-      const password = data.password?.toString() || '';
+      // If email is an object, extract the actual email and password from it
+      if (typeof data.email === 'object' && data.email !== null) {
+        console.log('Email is an object, extracting:', data.email);
+        const emailObj = data.email as any;
+        email = String(emailObj.email || '').trim();
+        password = String(emailObj.password || '');
+        console.log('Extracted from object - email:', email, 'password length:', password.length);
+      } else {
+        // Normal case
+        email = String(data.email || '').trim();
+        password = String(data.password || '');
+        console.log('Normal case - email:', email, 'password length:', password.length);
+      }
       
       if (!email || !password) {
+        console.error('Validation failed - email:', email, 'password:', password ? 'exists' : 'missing');
         throw new Error('Email and password are required');
       }
       
